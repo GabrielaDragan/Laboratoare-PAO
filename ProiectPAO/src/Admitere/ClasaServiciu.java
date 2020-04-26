@@ -1,31 +1,28 @@
 package Admitere;
 
-import com.sun.security.jgss.GSSUtil;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
 
-import javax.sound.midi.Soundbank;
-import java.sql.SQLOutput;
-import java.util.Scanner;
+import static Admitere.GestionareFisiere.citireCandidati;
+import static Admitere.GestionareFisiere.citireSpecializari;
 
 public class ClasaServiciu {
-    protected FisaInscriere[] fiseInscriere = new FisaInscriere[1000];
-    protected int numarFise;
+    protected List<FisaInscriere> fiseInscriere = new ArrayList<FisaInscriere>();
     protected Examen[] examene = new Examen[10];
     protected int numarExamene;
 
-    public FisaInscriere[] getFiseInscriere() {
+    public List<FisaInscriere> getFiseInscriere() {
         return fiseInscriere;
     }
 
-    public void setFiseInscriere(FisaInscriere[] fiseInscriere) {
+    public void setFiseInscriere(List<FisaInscriere> fiseInscriere) {
         this.fiseInscriere = fiseInscriere;
     }
 
     public int getNumarFise() {
-        return numarFise;
-    }
-
-    public void setNumarFise(int numarFise) {
-        this.numarFise = numarFise;
+        return fiseInscriere.size();
     }
 
     public Examen[] getExamene() {
@@ -45,6 +42,18 @@ public class ClasaServiciu {
     }
 
     Scanner scanner = new Scanner(System.in);
+
+
+    public void incarcareInitiala(){
+        List<Candidat> candidatList = GestionareFisiere.getInstance().citireCandidati();
+        Facultate facultate = new Facultate("Facultatea de Matematica si Informatica", citireSpecializari());
+        for (Candidat candidat: candidatList){
+            Set<Specializare> specializariCandidat = new HashSet<>();
+            specializariCandidat.add(new Specializare("Informatica"));
+            FisaInscriere fisaInscriere = new FisaInscriere(candidat, facultate, specializariCandidat );
+            fiseInscriere.add(fisaInscriere);
+        }
+    }
 
 
     //adaugaCandidat: adaugam un candidat nou de la tastatura
@@ -73,14 +82,12 @@ public class ClasaServiciu {
         //Specializarile facultatii
         System.out.println("Numarul de specializari la care aplici: ");
         int nr = scanner.nextInt();
-        Specializare []specializari = new Specializare[nr];
+        Set<Specializare> specializari = new HashSet<>();
         for(int i = 0; i < nr; i++){
             System.out.println("Denumirea specializarii (Informatica/Matematica/CTI): ");
             String den = scanner.next();
-            //Specializare spec = new Specializare(den);
-            //System.out.println(spec.getDenumire() + ' ' + spec.getLocuri());
-            specializari[i] = new Specializare(den);
-            //System.out.println(specializari[i].getDenumire() + ' ' + specializari[i].getLocuri());
+            Specializare spec = new Specializare(den);
+            specializari.add(spec);
         }
         //Creez obiectele necesare pentru o fisa de inscriere
         Liceu liceu = new Liceu(localitate, numel, profil);
@@ -91,26 +98,27 @@ public class ClasaServiciu {
         toateSpec[1] = new Specializare("Matematica");
         toateSpec[2] = new Specializare("CTI");
         Facultate facultate = new Facultate(numef, toateSpec);
-        fiseInscriere[this.numarFise] = new FisaInscriere(candidat, facultate, specializari);
-        this.numarFise++;
+        fiseInscriere.add(new FisaInscriere(candidat, facultate, specializari));
     }
 
     //afisam candidati
 
     public void afiseazaFiseleDeInscriere(){
-        for(int i = 0; i < this.numarFise; i++){
-            System.out.println("Nume: " + fiseInscriere[i].getCandidat().nume);
-            System.out.println("Prenume: " + fiseInscriere[i].getCandidat().prenume);
-            System.out.println("Varsta: " + fiseInscriere[i].getCandidat().varsta);
-            System.out.println("Numele liceului absolvit: " + fiseInscriere[i].getCandidat().getLiceu().getNumeLiceu());
-            System.out.println("Localitatea liceului: " + fiseInscriere[i].getCandidat().getLiceu().getLocalitatea());
-            System.out.println("Profilul: " + fiseInscriere[i].getCandidat().getLiceu().getProfil());
-            System.out.println("Media generala in liceu: " + fiseInscriere[i].getCandidat().getNote().getMedieLiceu());
-            System.out.println("Media la Bacalaureat: " + fiseInscriere[i].getCandidat().getNote().getMedieBac());
-            System.out.println("Numele facultatii la care te inscrii: " + fiseInscriere[i].getFacultate().getNume());
-            System.out.println("Adresa facultatii la care te inscrii: " + fiseInscriere[i].getFacultate().getAdresa());
-            for(int j = 0; j < fiseInscriere[i].getSpecializari().length; j++){
-                System.out.println("Specializare " + (j + 1) + ": " + fiseInscriere[i].getSpecializari()[j].getDenumire());
+        for(FisaInscriere fisa: fiseInscriere){
+            System.out.println("Nume: " + fisa.getCandidat().nume);
+            System.out.println("Prenume: " + fisa.getCandidat().prenume);
+            System.out.println("Varsta: " + fisa.getCandidat().varsta);
+            System.out.println("Numele liceului absolvit: " + fisa.getCandidat().getLiceu().getNumeLiceu());
+            System.out.println("Localitatea liceului: " + fisa.getCandidat().getLiceu().getLocalitatea());
+            System.out.println("Profilul: " + fisa.getCandidat().getLiceu().getProfil());
+            System.out.println("Media generala in liceu: " + fisa.getCandidat().getNote().getMedieLiceu());
+            System.out.println("Media la Bacalaureat: " + fisa.getCandidat().getNote().getMedieBac());
+            System.out.println("Numele facultatii la care te inscrii: " + fisa.getFacultate().getNume());
+            System.out.println("Adresa facultatii la care te inscrii: " + fisa.getFacultate().getAdresa());
+            int j = 1;
+            for(Specializare specializare: fisa.getSpecializari()){
+                System.out.println("Specializare " + j + ": " + specializare.getDenumire());
+                j++;
             }
             System.out.println();
         }
@@ -118,49 +126,32 @@ public class ClasaServiciu {
 
     //stergeFisaInscriere: sterge fisa de pe pozitia i
     public void stergeFisaInscriere(int i){
-        if(this.getNumarFise() == 1){
-            this.fiseInscriere[0] = null;
-        }
-        if(i == this.getNumarFise() - 1){
-            //System.out.println("SUNT IN PRIMUL IF");
-            this.fiseInscriere[this.getNumarFise()] = null;
-        }
-        if (i !=  this.getNumarFise() - 1 && this.getNumarFise() != 1) {
-            //System.out.println("SUNT IN AL DOILEA IF");
-            for (int j = i; j < this.getNumarFise() - 1; j++){
-                this.fiseInscriere[j].setCandidat(this.fiseInscriere[j + 1].getCandidat());
-                this.fiseInscriere[j].setFacultate(this.fiseInscriere[j + 1].getFacultate());
-                this.fiseInscriere[j].setSpecializari(this.fiseInscriere[j + 1].getSpecializari());
-                this.fiseInscriere[j].setTaxa(this.fiseInscriere[j + 1].getTaxa());
-            }
-            this.fiseInscriere[this.getNumarFise()] = null;
-        }
-        this.setNumarFise(this.getNumarFise() - 1);
+        this.fiseInscriere.remove(i);
     }
     //calculTaxa: calculeaza taxa de inscriere
 
     public int calculTaxa(int i){
-        if(this.fiseInscriere[i].getSpecializari().length == 1) {
-            this.fiseInscriere[i].setTaxa(100);
+        if(this.fiseInscriere.get(i).getSpecializari().size() == 1) {
+            this.fiseInscriere.get(i).setTaxa(100);
             return 100;
         }
-        else if(this.fiseInscriere[i].getSpecializari().length == 2) {
-            this.fiseInscriere[i].setTaxa(150);
+        else if(this.fiseInscriere.get(i).getSpecializari().size() == 2) {
+            this.fiseInscriere.get(i).setTaxa(150);
             return 150;
         }
-        this.fiseInscriere[i].setTaxa(200);
+        this.fiseInscriere.get(i).setTaxa(200);
         return 200;
     }
 
     //verifica daca un cadidat este admis la buget pentru o specializare data
     public boolean admisBuget(int i, Specializare spec){
-        return this.fiseInscriere[i].getNotaAdmitere() >= spec.getNotaMinBuget();
+        return this.fiseInscriere.get(i).getNotaAdmitere() >= spec.getNotaMinBuget();
     }
 
     //verifica daca un cadidat este admis la taxa pentru o specializare data
     public boolean admisTaxa(int i, Specializare spec){
-        return this.fiseInscriere[i].getNotaAdmitere() < spec.getNotaMinBuget() &&
-                this.fiseInscriere[i].getNotaAdmitere() >= spec.getNotaMinTaxa();
+        return this.fiseInscriere.get(i).getNotaAdmitere() < spec.getNotaMinBuget() &&
+                this.fiseInscriere.get(i).getNotaAdmitere() >= spec.getNotaMinTaxa();
     }
 
     //verifica daca un cadidat este respins pentru o specializare data
@@ -195,21 +186,21 @@ public class ClasaServiciu {
 
         Candidat []candidati = new Candidat[500];
         int nrCandidati = 0;
-        for(int i = 0; i < numarFise; i++){
+        for(int i = 0; i < fiseInscriere.size(); i++){
             //System.out.println("Numar fisa curent: " + i);
             //System.out.println("Numar specializari: " + fiseInscriere[i].getSpecializari().length);
-            for(int j = 0; j < fiseInscriere[i].getSpecializari().length; j++){
+            for(Specializare specializare1: fiseInscriere.get(i).getSpecializari()){
                 //System.out.println("Specializare curenta: " + fiseInscriere[i].getSpecializari()[j].getDenumire());
-                String spec1 = fiseInscriere[i].getSpecializari()[j].getDenumire();
+                String spec1 = specializare1.getDenumire();
                 //System.out.println("Compar " + fiseInscriere[i].getSpecializari()[j].getDenumire() + " si " + spec);
                 if(spec1.equals(spec)){
                     //System.out.println("Iau din: " + fiseInscriere[i].getCandidat().getNume());
                     //System.out.println("Creez: " + candidati[nrCandidati].getNume());
-                    candidati[nrCandidati] = new Candidat(fiseInscriere[i].getCandidat().getNume(),
-                            fiseInscriere[i].getCandidat().getPrenume(),
-                            fiseInscriere[i].getCandidat().getVarsta(),
-                            fiseInscriere[i].getCandidat().getLiceu(),
-                            fiseInscriere[i].getCandidat().getNote());
+                    candidati[nrCandidati] = new Candidat(fiseInscriere.get(i).getCandidat().getNume(),
+                            fiseInscriere.get(i).getCandidat().getPrenume(),
+                            fiseInscriere.get(i).getCandidat().getVarsta(),
+                            fiseInscriere.get(i).getCandidat().getLiceu(),
+                            fiseInscriere.get(i).getCandidat().getNote());
                     //System.out.println(candidati[nrCandidati].getPrenume());
                     nrCandidati ++;
                 }
@@ -222,6 +213,7 @@ public class ClasaServiciu {
 
     public void afiseazaExamene(){
         //System.out.println("Avem " + this.getNumarExamene() + " examene: ");
+        if (this.getNumarExamene() == 0) System.out.println("Nu exista nici un examen planificat in acest moment. \nDaca doriti sa adaugati un examen apasati tasta 5. ");
         for(int i = 0; i < this.getNumarExamene(); i++){
             System.out.println("Examen pentru specializarea " + this.examene[i].getSpecializare().getDenumire());
             System.out.println();
@@ -264,27 +256,33 @@ public class ClasaServiciu {
 
     //impartireInSali -> se atribuie fiecarei sali numarul maxim de candidati pana cand acestia sunt distribuiti toti
     public int impartireInSali(){
-        System.out.println("Pentru care examen doriti sa faceti impartirea pe sali ? ");
-        int i;
-        for(i = 0; i < this.getNumarExamene(); i++){
-            System.out.println(i + "." + this.examene[i].getSpecializare().getDenumire());
-        }
-        i = scanner.nextInt();
-        int nr = this.examene[i].getNumarCandidati();
-        int sali = 0;
-        while(nr != 0) {
-            if (this.examene[i].getSaliExamen()[sali].getLocuri() < nr) {
-                System.out.println("In sala " + this.examene[i].getSaliExamen()[sali].getNume() + " vor fi "
-                        + this.examene[i].getSaliExamen()[sali].getLocuri() + " candidati.");
-                nr -= this.examene[i].getSaliExamen()[sali].getLocuri();
-                sali ++;
-            } else {
-                System.out.println("In sala " + this.examene[i].getSaliExamen()[sali].getNume() + " vor fi " + nr + " candidati.");
-                nr = 0;
-                sali++;
+        if (this.getNumarExamene() == 0) System.out.println("Nu exista examene pentru care sa se realizeze impartirea in sali.");
+        else {
+            System.out.println("Pentru care examen doriti sa faceti impartirea pe sali ? ");
+
+            int i;
+
+            for (i = 0; i < this.getNumarExamene(); i++) {
+                System.out.println(i + "." + this.examene[i].getSpecializare().getDenumire());
             }
+            i = scanner.nextInt();
+            int nr = this.examene[i].getNumarCandidati();
+            int sali = 0;
+            while (nr != 0) {
+                if (this.examene[i].getSaliExamen()[sali].getLocuri() < nr) {
+                    System.out.println("In sala " + this.examene[i].getSaliExamen()[sali].getNume() + " vor fi "
+                            + this.examene[i].getSaliExamen()[sali].getLocuri() + " candidati.");
+                    nr -= this.examene[i].getSaliExamen()[sali].getLocuri();
+                    sali++;
+                } else {
+                    System.out.println("In sala " + this.examene[i].getSaliExamen()[sali].getNume() + " vor fi " + nr + " candidati.");
+                    nr = 0;
+                    sali++;
+                }
+            }
+            return sali;
         }
-        return sali;
+        return 0;
     }
 
     //supraveghetoriNecesari in Examen -> calculeaza cati supraveghetori sunt necesari in functie de cate sali are un examen

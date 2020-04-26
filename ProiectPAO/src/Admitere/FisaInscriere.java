@@ -1,9 +1,11 @@
 package Admitere;
 
+import java.util.Set;
+
 public class FisaInscriere{
     private Candidat candidat;
     private Facultate facultate;
-    private Specializare[] specializari;
+    private Set<Specializare> specializari;
     private float notaAdmitere;
     //Taxa de inscriere pentru specializari (100 pt o specializare, 150 pt doua specializari, 200 pt trei specializari)
     private int taxa;
@@ -11,7 +13,7 @@ public class FisaInscriere{
     public FisaInscriere() {
     }
 
-    public FisaInscriere(Candidat candidat, Facultate facultate, Specializare[] specializari) {
+    public FisaInscriere(Candidat candidat, Facultate facultate, Set<Specializare> specializari) {
         this.candidat = candidat;
         this.facultate = facultate;
         this.specializari = specializari;
@@ -35,11 +37,11 @@ public class FisaInscriere{
         this.facultate = facultate;
     }
 
-    public Specializare[] getSpecializari() {
+    public Set<Specializare> getSpecializari() {
         return specializari;
     }
 
-    public void setSpecializari(Specializare[] specializari) {
+    public void setSpecializari(Set<Specializare> specializari) {
         this.specializari = specializari;
     }
 
@@ -53,6 +55,15 @@ public class FisaInscriere{
 
     public void setTaxa(int taxa) {
         this.taxa = taxa;
+    }
+
+    public static int getIndex(Set<Specializare> specializareSet, Specializare specializare){
+        int result = 0;
+        for (Specializare spec: specializareSet){
+            if (spec.equals(specializare)) return result;
+            result ++;
+        }
+        return -1;
     }
 
 }
